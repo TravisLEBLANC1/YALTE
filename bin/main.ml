@@ -36,4 +36,6 @@ let () =
   let c_prog  = open_in file in
   let lb_prog = Lexing.from_channel c_prog in
   let prog = parse file Parser.program lb_prog in 
-  Yaltelib.Print.print_program prog
+  let term = Term.prog_to_term prog in
+  let kam_run = Kam.kam term in
+  Kam.print_kam_run stdout kam_run
