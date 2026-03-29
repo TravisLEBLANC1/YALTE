@@ -26,7 +26,7 @@ rule token = parse
       { comment lexbuf; token lexbuf }
   | ident as id
       { keyword_or_ident id }
-  | "λ" 
+  | "λ" | "\\"
       { LAMBDA }
   | "."
       { DOT }

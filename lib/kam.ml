@@ -8,6 +8,8 @@ and env =  EnvNil | EnvCons of (ident * closure) * env
 type stack = closure list
 type config = Conf of term * env * stack
 
+
+
 (*** printing functions ***)
 
 let rec sprint_closure (Clos(t, e))=
@@ -29,6 +31,8 @@ let print_kam_run out (run : config list) =
   let header : string array = [| "Term"; "Env"; "Stack" |] in
   let configs = Array.of_list (List.map sprint_config run) in
   Print.print_run out header configs
+
+
 
 (*** transitions functions ***)
 
