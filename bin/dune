@@ -1,0 +1,11 @@
+(ocamllex
+ (modules lexer))
+(menhir
+ (modules parser)
+ (infer true))  
+(executable
+ (public_name YALTE)
+ (name main)
+ (libraries yaltelib)
+  (promote (until-clean))
+ (flags ()))

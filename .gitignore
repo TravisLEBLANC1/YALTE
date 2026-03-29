@@ -1,3 +1,5 @@
+input.ml
+*.exe
 *.annot
 *.cmo
 *.cma
