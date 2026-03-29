@@ -16,4 +16,4 @@
 (package
  (name FaustML)
  (synopsis "Simple lambda term evaluator")
- (depends ocaml dune))
+ (depends ocaml dune wcwidth))

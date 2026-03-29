@@ -6,6 +6,6 @@
 (executable
  (public_name YALTE)
  (name main)
- (libraries yaltelib)
+ (libraries yaltelib wcwidth)
   (promote (until-clean))
  (flags ()))

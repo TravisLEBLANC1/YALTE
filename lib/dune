@@ -3,4 +3,5 @@
  (modules 
  term
  print
- kam))
+ kam)
+ (libraries wcwidth))

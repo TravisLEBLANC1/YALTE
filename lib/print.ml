@@ -3,7 +3,7 @@ open Term
 (***** print terms and pure programs ******)
 let rec sprint_term = function 
   | VAR(x) -> x 
-  | ABS(x, t) -> Printf.sprintf "\\%s.%s" x (sprint_term t)
+  | ABS(x, t) -> Printf.sprintf "λ%s.%s" x (sprint_term t)
   | APP(VAR(x), t2) -> Printf.sprintf "%s %s" x (sprint_term t2)
   | APP(t1, VAR(y)) -> Printf.sprintf "(%s) %s" (sprint_term t1) y 
   | APP(t1, t2) -> Printf.sprintf "(%s) (%s)" (sprint_term t1) (sprint_term t2)
@@ -53,7 +53,8 @@ let max_column (n : int) (lss : (string array) array) : int array =
     lss
   
 let complete_string s n = 
-  s ^ String.init (n - String.length s) (fun _ -> ' ')
+  let w = Wcwidth.wcswidth s in
+  s ^ String.make (max 0 (n - w)) ' '
 
 (* hopefully we call print_line with normalized columns*)
 let print_line out (line : string array) =
@@ -78,7 +79,6 @@ let print_line out (line : string array) =
   in
   Array.iter normalize_line configs;
   normalize_line header;
-  check_normalize_sizes max_col configs; (* sanity check *)
 
   (* print each lines *)
   let total_size = Array.fold_left (fun res c -> res + c + 2) 4 max_col in

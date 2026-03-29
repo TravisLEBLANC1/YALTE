@@ -14,11 +14,11 @@ let rec sprint_closure (Clos(t, e))=
   Printf.sprintf "(%s, %s)" (sprint_term t) (sprint_env e)
 
 and sprint_env = function 
-  | EnvNil -> "[]"
+  | EnvNil -> "ε"
   | EnvCons((x, c), e) -> Printf.sprintf "[%s <- %s]::%s" x (sprint_closure c) (sprint_env e)
 
 and sprint_stack = function 
-  | [] -> "[]"
+  | [] -> "ε"
   | c::s -> Printf.sprintf "%s::%s" (sprint_closure c) (sprint_stack s)
 
 let sprint_config (Conf(t, e, s)) = 
