@@ -3,5 +3,6 @@
  (modules 
  term
  print
- kam)
+ kam
+ iam)
  (libraries wcwidth))

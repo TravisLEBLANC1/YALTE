@@ -65,7 +65,7 @@ let print_line out (line : string array) =
 
 (* print a table with first the header
   then one config by line *)
-  let print_run out (header : string array) (configs : (string array) array) : unit = 
+let print_run out (header : string array) (configs : (string array) array) : unit = 
   let n = Array.length header in 
   check_sizes n configs; (* sanity check *)
   
@@ -79,6 +79,9 @@ let print_line out (line : string array) =
   in
   Array.iter normalize_line configs;
   normalize_line header;
+
+  (* print general info on the run *)
+  Printf.fprintf out "length = %d \n" (Array.length configs);
 
   (* print each lines *)
   let total_size = Array.fold_left (fun res c -> res + c + 2) 4 max_col in

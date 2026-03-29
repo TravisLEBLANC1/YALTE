@@ -37,5 +37,5 @@ let () =
   let lb_prog = Lexing.from_channel c_prog in
   let prog = parse file Parser.program lb_prog in 
   let term = Term.prog_to_term prog in
-  let kam_run = Kam.kam term in
-  Kam.print_kam_run stdout kam_run
+  let iam_run = Iam.iam term 0 in
+  Iam.print_iam_run stdout iam_run
