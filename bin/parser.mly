@@ -1,6 +1,6 @@
 %{
     open Lexing
-    open Yaltelib.Types
+    open Yaltelib.Term
 %}
 
 %token EOF
@@ -12,12 +12,12 @@
 
 
 %start program
-%type <Yaltelib.Types.prog> program 
-%type <Yaltelib.Types.letbind> bindings 
-%type <Yaltelib.Types.letbinds> list(bindings)
-%type <Yaltelib.Types.term> term
-%type <Yaltelib.Types.term> app_term 
-%type <Yaltelib.Types.term> atom
+%type <Yaltelib.Term.prog> program 
+%type <Yaltelib.Term.letbind> bindings 
+%type <Yaltelib.Term.letbinds> list(bindings)
+%type <Yaltelib.Term.term> term
+%type <Yaltelib.Term.term> app_term 
+%type <Yaltelib.Term.term> atom
 %%
     
 program:
