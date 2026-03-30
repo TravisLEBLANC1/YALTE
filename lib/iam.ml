@@ -65,13 +65,23 @@ let print_config (c : config) =
   done;
   print_newline () 
 
+let fprint_config out (c : config) = 
+  let s = sprint_config c in
+  for i = 0 to 4 do 
+    Printf.fprintf out "%s | " (s.(i))
+  done;
+  print_newline () 
+
 
 let print_iam_run out (run : config list) = 
   let header : string array = [| "Term"; "Ctxt"; "Log" ; "Tape" ; "Dir" |] in
   let configs = Array.of_list (List.map sprint_config run) in
   Print.print_run out header configs
 
-
+let print_iam_result out (run : config list) = 
+  let n = (List.length run) in
+  Printf.fprintf out "length = %d\n" n
+  (* fprint_config out (List.nth run (n-1)) *)
 
 
 (*** transitions functions ***)
@@ -118,6 +128,7 @@ let rec fill_hole ctxt filler = match ctxt with
 
 (* return the next config of the KAM *)
 let trans (Conf(t, ctxt, lo, tape, dir) : config) : config = 
+  (* print_config (Conf(t, ctxt, lo, tape, dir)); *)
   match t, ctxt, lo, tape, dir with 
   | APP(u, t), ctxt, lo, tape, Down                     -> (* →•1  *) Conf(u, LAPP(t)::ctxt, lo, Bullet(tape), Down)
   | ABS(x, t), ctxt, lo, Bullet(tape), Down             -> (* →•2  *) Conf(t, CABS(x)::ctxt, lo, tape, Down)
