@@ -27,11 +27,23 @@ let sprint_config (Conf(t, e, s)) =
   [| sprint_term t ; sprint_env e ; sprint_stack s |]
 
 
+let print_config (Conf(t, e, s)) = 
+  Printf.printf "%s | %s | %s\n" (sprint_term t) (sprint_env e) (sprint_stack s)
+
+let fprint_config out (Conf(t, e, s)) = 
+  Printf.fprintf out "%s | %s | %s\n" (sprint_term t) (sprint_env e) (sprint_stack s)
+
+
 let print_kam_run out (run : config list) = 
   let header : string array = [| "Term"; "Env"; "Stack" |] in
   let configs = Array.of_list (List.map sprint_config run) in
   Print.print_run out header configs
 
+
+let print_kam_result out (run : config list) = 
+  let n = (List.length run) in
+  Printf.fprintf out "length = %d\n" n
+  (*fprint_config out (List.nth run (n-1))*)
 
 
 (*** transitions functions ***)
@@ -49,16 +61,30 @@ let projection (t : term) (e : env) : env =
   in 
   proj_aux e
 
+let rec find_map (e:env) (x : ident) : closure = match e with 
+  | EnvNil -> raise (Failure("no map for "^ x ^ " in the env"))
+  | EnvCons((y, c), _) when String.equal x y -> c 
+  | EnvCons(_, e) -> find_map e x 
+
+
 (* return the next config of the KAM *)
 let trans (Conf(t, e, s) : config) : config = 
+  (* print_config (Conf(t, e, s)); *)
   match t with  
+  | APP(t1, VAR(x)) -> Conf(t1, projection t1 e, find_map e x :: s)
   | APP(t1, t2) ->
     Conf(t1, projection t1 e, Clos(t2, projection t2 e) :: s)
-  | ABS(x, t1) -> 
+  | ABS(x, t1) when SSet.mem x (fv t1) -> 
     begin
       match s with 
       | [] -> Conf(t, e, s) (* reached final state *)
       | c::s -> Conf(t1, EnvCons((x, c), e), s)
+    end
+  | ABS(_, t1) -> 
+    begin
+      match s with 
+      | [] -> Conf(t, e, s) (* reached final state *)
+      | _::s -> Conf(t1, e, s) (* weakening (x not in fv t1)*)
     end
   | VAR(x) -> 
     begin
