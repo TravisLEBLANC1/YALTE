@@ -3,7 +3,7 @@ open Lexing
 open Format
 open Yaltelib
 
-let usage = "usage: ./yalte [-iam/-kam] prog.ml"
+let usage = "usage: ./main.exe [-iam/-kam] prog.ml"
 
 let verbose_flag = ref false
 let iam_flag = ref false 
@@ -46,8 +46,8 @@ let compute_term term =
     if !verbose_flag then
       Iam.print_iam_run stdout iam_run
     else
-      Iam.print_iam_result stdout iam_run
-  else if !kam_flag then  
+      Iam.print_iam_result stdout iam_run;
+  if !kam_flag then  
     let kam_run = Kam.kam term in
     if !verbose_flag then
       Kam.print_kam_run stdout kam_run
