@@ -40,14 +40,17 @@ let rec sprint_ctxt (ctxt : context) (filler : string) = match ctxt with
 let sprint_ctxt (ctxt : context) = sprint_ctxt ctxt "☐"
 
 let rec sprint_tape (t : tape) = match t with 
-  | TNil -> ""
+  | TNil -> "ε"
+  | Bullet(TNil) -> "•"
   | Bullet(t) -> "•" ^ sprint_tape t 
-  | Lpos(l, t) -> Printf.sprintf " %s%s" (sprint_lpos l) (sprint_tape t)
+  | Lpos(l, TNil) -> sprint_lpos l
+  | Lpos(l, t) -> Printf.sprintf "%s%s" (sprint_lpos l) (sprint_tape t)
 
 and sprint_lpos ((x, ctxt, log) : lpos) = 
   Printf.sprintf "(%s, %s, %s)" x (sprint_ctxt ctxt) (sprint_log log) 
 and sprint_log (log : log) = match log with 
   | LNil -> "ε"
+  | LCons(l, LNil) -> sprint_lpos l
   | LCons(l, log) -> Printf.sprintf "%s::%s" (sprint_lpos l) (sprint_log log)
 
 let sprint_dir (dir : dir) = match dir with 
@@ -80,7 +83,7 @@ let print_iam_run out (run : config list) =
 
 let print_iam_result out (run : config list) = 
   let n = (List.length run) in
-  Printf.fprintf out "length = %d\n" n
+  Printf.fprintf out "%d\n" n
   (* fprint_config out (List.nth run (n-1)) *)
 
 
@@ -153,7 +156,7 @@ let is_final (Conf(t, ctxt, lo, tape, dir) : config) =
   match t, ctxt, lo, tape, dir with 
   | ABS(_, _), _, _, TNil, Down -> true 
   | _, [], _, _, Up -> true 
-  | VAR(x), ctxt, _, _, Down when (Option.is_none (find_abs x ctxt [])) -> true 
+  | VAR(x), _, _, _, Down when (Option.is_none (find_abs x ctxt [])) -> true 
   | _ -> false 
 
 let rec iam_loop (c : config) : config list = 

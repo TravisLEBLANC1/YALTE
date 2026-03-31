@@ -40,11 +40,7 @@ let file =
     match !file with Some f -> f | None -> Arg.usage spec usage; exit 1
 
 
-let () =
-  let c_prog  = open_in file in
-  let lb_prog = Lexing.from_channel c_prog in
-  let prog = parse file Parser.program lb_prog in 
-  let term = Term.prog_to_term prog in
+let compute_term term = 
   if !iam_flag then 
     let iam_run = Iam.iam term 0 in
     if !verbose_flag then
@@ -59,3 +55,10 @@ let () =
       Kam.print_kam_result stdout kam_run
   else 
     Printf.printf "%s\n" usage
+
+let () =
+  let c_prog  = open_in file in
+  let lb_prog = Lexing.from_channel c_prog in
+  let prog = parse file Parser.program lb_prog in 
+  let terms = Term.prog_to_term prog in
+  List.iter compute_term terms

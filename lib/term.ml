@@ -5,7 +5,7 @@ type ident = string
 
 type prog = {
   bindings : letbinds;
-  term : term 
+  term : term list; 
 }
 and letbinds = letbind list
 and letbind = 
@@ -47,5 +47,5 @@ let rec prog_to_term_aux bindings term : term =
     prog_to_term_aux newbindings newterm
 
 
-(* substitute all bindings to create a single term*)
-let prog_to_term (prog : prog) = prog_to_term_aux prog.bindings prog.term 
+(* substitute all bindings to create a single list of term*)
+let prog_to_term (prog : prog) = List.map (prog_to_term_aux prog.bindings) prog.term 

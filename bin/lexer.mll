@@ -15,7 +15,7 @@
 }
 let digit = ['0'-'9']
 let alpha = ['a'-'z' 'A'-'Z']
-let ident = ['a'-'z' '_'] (alpha | '_' | '\'' | digit)*
+let ident = ['a'-'z' 'A'-'Z' '_'] (alpha | '_' | '\'' | digit)*
   
 rule token = parse
   | ['\n']
@@ -36,6 +36,8 @@ rule token = parse
       { LPAR }
   | ")"
       { RPAR }
+  | "|"
+      { BAR }
   | _
       { failwith ("Unknown character : " ^ (lexeme lexbuf)) }
   | eof

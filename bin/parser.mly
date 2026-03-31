@@ -8,7 +8,7 @@
 %token LAMBDA DOT EQ
 
 %token LET REC IN
-%token LPAR RPAR
+%token LPAR RPAR BAR
 
 
 %start program
@@ -21,7 +21,7 @@
 %%
     
 program:
-| bindings=list(bindings) t=term EOF { {bindings = bindings; term = t} }
+| bindings=list(bindings) t=separated_list(BAR, term) EOF { {bindings = bindings; term = t} }
 ;
 
 bindings:

@@ -42,7 +42,7 @@ let print_kam_run out (run : config list) =
 
 let print_kam_result out (run : config list) = 
   let n = (List.length run) in
-  Printf.fprintf out "length = %d\n" n
+  Printf.fprintf out "%d\n" n
   (*fprint_config out (List.nth run (n-1))*)
 
 

@@ -4,9 +4,9 @@ open Term
 let rec sprint_term = function 
   | VAR(x) -> x 
   | ABS(x, t) -> Printf.sprintf "λ%s.%s" x (sprint_term t)
-  | APP(VAR(x), t2) -> Printf.sprintf "%s %s" x (sprint_term t2)
-  | APP(t1, VAR(y)) -> Printf.sprintf "(%s) %s" (sprint_term t1) y 
-  | APP(t1, t2) -> Printf.sprintf "(%s) (%s)" (sprint_term t1) (sprint_term t2)
+  | APP(VAR(x), VAR(y)) -> Printf.sprintf "%s %s" x y
+  | APP(t1, VAR(y)) -> Printf.sprintf "%s %s" (sprint_term t1) y 
+  | APP(t1, t2) -> Printf.sprintf "%s (%s)" (sprint_term t1) (sprint_term t2)
 
 let print_bind = function 
   | LET(x, t) -> Printf.printf "let %s = %s in" x (sprint_term t) 
@@ -18,7 +18,7 @@ let print_term t = print_string (sprint_term t)
 
 let print_program prog : unit = 
   print_bindings prog.bindings;
-  print_term prog.term;
+  List.iter (fun term -> print_term term; print_string "___ \n") prog.term;
   print_newline ()
 
 
