@@ -43,3 +43,5 @@ t := \x.t | λx.t | t t | x
 λx.xx  (*is interpreted as the term λy.xx, where xx is a free variable*)
 λx.x x (*is interpreted as the term λy.y y with no free variables*)
 ```
+
+see a complete example at [[input_example.ml]]
