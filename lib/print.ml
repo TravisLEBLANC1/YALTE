@@ -16,6 +16,18 @@ let print_bindings = List.iter (fun b -> print_bind b; print_newline ())
 
 let print_term t = print_string (sprint_term t)
 
+
+let rec sprint_ctxt (ctxt : context) (filler : string) = match ctxt with 
+  | [] -> filler
+  (* | LAPP(VAR(x))::ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) %s" filler x) *)
+  | LAPP(t)::ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) (%s)" filler (sprint_term t))
+  (* | RAPP(VAR(x))::ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) %s" filler x) *)
+  | RAPP(t) :: ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) (%s)" (sprint_term t) filler)
+  | CABS(x) :: ctxt -> sprint_ctxt ctxt (Printf.sprintf "λ%s.%s" x filler)
+
+let sprint_ctxt (ctxt : context) = sprint_ctxt ctxt "☐"
+
+
 let print_program prog : unit = 
   print_bindings prog.bindings;
   List.iter (fun term -> print_term term; print_string "___ \n") prog.term;

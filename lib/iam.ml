@@ -2,17 +2,6 @@ open Term
 open Print
 
 
-type ctxt_type = 
-  | LAPP of  (* hole * *) term 
-  | RAPP of term (* * hole *)
-  | CABS of ident (* * hole *)
-
-(* context are reprensented upside down, 
-the first element is the element just above the hole
-the empty list is just a hole *)
-type context = ctxt_type list 
-
-
 type tape = 
   | TNil
   | Bullet of tape 
@@ -26,18 +15,6 @@ type dir = Up | Down
 
 type config = Conf of term * context * log * tape * dir
 
-
-(*** printing functions ***)
-
-let rec sprint_ctxt (ctxt : context) (filler : string) = match ctxt with 
-  | [] -> filler
-  (* | LAPP(VAR(x))::ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) %s" filler x) *)
-  | LAPP(t)::ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) (%s)" filler (sprint_term t))
-  (* | RAPP(VAR(x))::ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) %s" filler x) *)
-  | RAPP(t) :: ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) (%s)" (sprint_term t) filler)
-  | CABS(x) :: ctxt -> sprint_ctxt ctxt (Printf.sprintf "λ%s.%s" x filler)
-
-let sprint_ctxt (ctxt : context) = sprint_ctxt ctxt "☐"
 
 let rec sprint_tape (t : tape) = match t with 
   | TNil -> "ε"
@@ -115,18 +92,6 @@ let rec level = function
   | RAPP(_) :: ctxt -> level ctxt + 1
   | _ :: ctxt -> level ctxt
 
-(*unfold the context until we find the abs x, return both ctxts*)
-let rec find_abs x ctxt res = match ctxt with 
-  | [] -> None
-  | CABS(y)::ctxt when String.equal x y -> Some(res @ [CABS(y)], ctxt)
-  | c::ctxt -> find_abs x ctxt (res @ [c])
-
-(* reconstruct the term by filling the hole with filler*)
-let rec fill_hole ctxt filler = match ctxt with 
-  | [] -> filler 
-  | CABS(y)::ctxt -> fill_hole ctxt (ABS(y, filler))
-  | LAPP(t)::ctxt -> fill_hole ctxt (APP(filler, t))
-  | RAPP(t)::ctxt -> fill_hole ctxt (APP(t, filler))
 
 
 (* return the next config of the KAM *)
@@ -143,7 +108,7 @@ let trans (Conf(t, ctxt, lo, tape, dir) : config) : config =
   | t, RAPP(u)::ctxt, LCons(l, lo), tape, Up            -> (* →bt1 *) Conf(u, LAPP(t)::ctxt, lo, Lpos(l, tape), Down)
 
   | VAR(x), ctxt, lo, tape, Down                        ->  (* →var *)
-    let octxt = find_abs x ctxt [] in  
+    let octxt = find_abs x ctxt in  
     if Option.is_none octxt then 
       Conf(t, ctxt, lo, tape, dir) (*final state (open variable)*)
     else
@@ -156,7 +121,7 @@ let is_final (Conf(t, ctxt, lo, tape, dir) : config) =
   match t, ctxt, lo, tape, dir with 
   | ABS(_, _), _, _, TNil, Down -> true 
   | _, [], _, _, Up -> true 
-  | VAR(x), _, _, _, Down when (Option.is_none (find_abs x ctxt [])) -> true 
+  | VAR(x), _, _, _, Down when (Option.is_none (find_abs x ctxt)) -> true 
   | _ -> false 
 
 let rec iam_loop (c : config) : config list = 
