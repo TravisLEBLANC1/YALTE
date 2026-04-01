@@ -46,6 +46,7 @@ let print_kam_result out (run : config list) =
   (*fprint_config out (List.nth run (n-1))*)
 
 
+
 (*** transitions functions ***)
 
 (* return the projection of the env to the free variables of t*)
@@ -108,5 +109,12 @@ let rec kam_loop (c : config) : config list =
   else
     c :: kam_loop (trans c)
 
-let kam (t : term) : config list = kam_loop (Conf(t, EnvNil, []))
+let rec kam_loop_noverbose (c : config) : config list = 
+  if is_final c then 
+    [c]
+  else
+    kam_loop_noverbose (trans c)
 
+let kam (t : term) (_ : bool): config list = 
+  let conf = Conf(t, EnvNil, []) in 
+  kam_loop conf

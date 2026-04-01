@@ -27,6 +27,7 @@ the first element is the element just above the hole
 the empty list is just a hole *)
 type context = ctxt_type list 
 
+type input_type = Church | Scott | No_Input
 
 let rec find_abs x ctxt res = match ctxt with 
   | [] -> None
@@ -61,18 +62,40 @@ let substitute_in_letbind x v = function
   | LETREC(y, t) -> LETREC(y, substitute x v t)
 
 
-let rec prog_to_term_aux bindings term : term = 
+let rec int_to_scott n = match n with 
+  | 0 -> ABS("z", ABS("s", VAR("z")))
+  | n -> ABS("z", ABS("s", APP(VAR("s"), int_to_scott (n-1))))
+
+let int_to_church n = 
+  let nf = ref (VAR("x")) in 
+  for _ = 0 to n-1 do
+    nf := APP(VAR("f"), !nf)
+  done;
+  ABS("f", ABS("x", !nf))
+
+let rec prog_to_term_aux bindings term app_term : term = 
   match bindings with 
-  | [] -> term 
+  | [] -> 
+    if (Option.is_some app_term) then 
+      APP(term, Option.get app_term)
+    else
+      term
   | LET(x, v) :: bindings -> 
     let newbindings = List.map (substitute_in_letbind x v) bindings in 
     let newterm = substitute x v term in 
-    prog_to_term_aux newbindings newterm
+    prog_to_term_aux newbindings newterm app_term
   | LETREC(x, v) :: bindings -> 
     let newbindings = List.map (substitute_in_letbind x v) bindings in 
     let newterm = substitute x v term in 
-    prog_to_term_aux newbindings newterm
+    prog_to_term_aux newbindings newterm app_term
 
 
 (* substitute all bindings to create a single list of term*)
-let prog_to_term (prog : prog) = List.map (prog_to_term_aux prog.bindings) prog.term 
+let prog_to_term (prog : prog) (input_type : input_type) (n : int) = 
+  let app_term = match input_type with 
+        | No_Input -> None
+        | Church -> Some(int_to_church n)
+        | Scott -> Some(int_to_scott n)
+  in
+   
+  List.map (fun t -> prog_to_term_aux prog.bindings t app_term) prog.term 

@@ -5,9 +5,10 @@ let rec sprint_term = function
   | VAR(x) -> x 
   | ABS(x, t) -> Printf.sprintf "λ%s.%s" x (sprint_term t)
   | APP(VAR(x), VAR(y)) -> Printf.sprintf "%s %s" x y
-  | APP(t1, VAR(y)) -> Printf.sprintf "%s %s" (sprint_term t1) y 
-  | APP(t1, t2) -> Printf.sprintf "%s (%s)" (sprint_term t1) (sprint_term t2)
-
+  | APP(APP(_,_) as t1, VAR(y)) -> Printf.sprintf "%s %s" (sprint_term t1) y
+  | APP(t1, VAR(y)) -> Printf.sprintf "(%s) %s" (sprint_term t1) y
+  | APP(APP(_,_) as t1, t2) -> Printf.sprintf "%s (%s)" (sprint_term t1) (sprint_term t2)
+  | APP(t1, t2) -> Printf.sprintf "(%s) (%s)" (sprint_term t1) (sprint_term t2)
 let print_bind = function 
   | LET(x, t) -> Printf.printf "let %s = %s in" x (sprint_term t) 
   | LETREC(x, t) -> Printf.printf "let rec %s = %s in" x (sprint_term t) 
@@ -22,7 +23,7 @@ let rec sprint_ctxt (ctxt : context) (filler : string) = match ctxt with
   (* | LAPP(VAR(x))::ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) %s" filler x) *)
   | LAPP(t)::ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) (%s)" filler (sprint_term t))
   (* | RAPP(VAR(x))::ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) %s" filler x) *)
-  | RAPP(t) :: ctxt -> sprint_ctxt ctxt (Printf.sprintf "(%s) (%s)" (sprint_term t) filler)
+  | RAPP(t) :: ctxt -> sprint_ctxt ctxt (Printf.sprintf "%s (%s)" (sprint_term t) filler)
   | CABS(x) :: ctxt -> sprint_ctxt ctxt (Printf.sprintf "λ%s.%s" x filler)
 
 let sprint_ctxt (ctxt : context) = sprint_ctxt ctxt "☐"

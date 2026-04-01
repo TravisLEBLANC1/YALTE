@@ -8,11 +8,26 @@ let usage = "usage: ./main.exe [-iam/-kam] prog.ml"
 let verbose_flag = ref false
 let iam_flag = ref false 
 let kam_flag = ref false 
+let input_int = ref 0
+let bullets = ref 0
+let input_type = ref Yaltelib.Term.No_Input
+
+let input_church (n : int) = 
+  input_int := n;
+  input_type := Yaltelib.Term.Church
+
+let input_scott (n : int) = 
+  input_int := n;
+  input_type := Yaltelib.Term.Scott
+
 
 let spec = [
   ("-v", Arg.Set verbose_flag, "print the entire run");
   ("-iam", Arg.Set iam_flag, "enable iam run");
   ("-kam", Arg.Set kam_flag, "enable kam run");
+  ("-scott", Arg.Int input_scott, "gives the integer as input in Scott encodding");
+  ("-church", Arg.Int input_church, "gives the integer as input in Church encodding");
+  ("-n", Arg.Set_int bullets, "the number of initial Bullet for the IAM");
 ]
 
 let report filename (b,e) =
@@ -41,24 +56,24 @@ let file =
 
 
 let compute_term term = 
-  if !iam_flag then 
-    let iam_run = Iam.iam term 0 in
+  if !iam_flag then(
+    let iam_run = Iam.iam term !bullets !verbose_flag in
     if !verbose_flag then
       Iam.print_iam_run stdout iam_run
     else
-      Iam.print_iam_result stdout iam_run;
-  if !kam_flag then  
-    let kam_run = Kam.kam term in
+      Iam.print_iam_result stdout iam_run
+  );
+  if !kam_flag then (
+    let kam_run = Kam.kam term !verbose_flag in
     if !verbose_flag then
-      Kam.print_kam_run stdout kam_run
+      Kam.print_kam_run stdout kam_run 
     else
       Kam.print_kam_result stdout kam_run
-  else 
-    Printf.printf "%s\n" usage
+  )
 
 let () =
   let c_prog  = open_in file in
   let lb_prog = Lexing.from_channel c_prog in
   let prog = parse file Parser.program lb_prog in 
-  let terms = Term.prog_to_term prog in
+  let terms = Term.prog_to_term prog !input_type !input_int in
   List.iter compute_term terms

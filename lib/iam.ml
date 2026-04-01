@@ -13,7 +13,9 @@ and log =
 
 type dir = Up | Down
 
-type config = Conf of term * context * log * tape * dir
+type trans_name = Trans_None | Trans_Var | Trans_Arg | Trans_B1 | Trans_B2 | Trans_B3 | Trans_B4 | Trans_bt1 | Trans_bt2
+
+type config = Conf of term * context * log * tape * dir * trans_name
 
 
 let rec sprint_tape (t : tape) = match t with 
@@ -34,9 +36,19 @@ let sprint_dir (dir : dir) = match dir with
   | Up -> "↑"
   | Down -> "↓"
 
+let sprint_trans_name (trans_name) = match trans_name with 
+  | Trans_None -> ""
+  | Trans_Var -> "→var"
+  | Trans_Arg -> "→arg"
+  | Trans_B1 -> "→•1"
+  | Trans_B2 -> "→•2"
+  | Trans_B3 -> "→•3"
+  | Trans_B4 -> "→•4"
+  | Trans_bt1 -> "→bt1"
+  | Trans_bt2 -> "→bt2"
 
-let sprint_config (Conf(t, ctxt, log, tape, dir) : config) = 
-  [| sprint_term t ; sprint_ctxt ctxt ; sprint_log log ; sprint_tape tape ; sprint_dir dir|]
+let sprint_config (Conf(t, ctxt, log, tape, dir, trans_name) : config) = 
+  [| sprint_trans_name trans_name; sprint_term t ; sprint_ctxt ctxt ; sprint_log log ; sprint_tape tape ; sprint_dir dir|]
 
 let print_config (c : config) = 
   let s = sprint_config c in
@@ -54,13 +66,18 @@ let fprint_config out (c : config) =
 
 
 let print_iam_run out (run : config list) = 
-  let header : string array = [| "Term"; "Ctxt"; "Log" ; "Tape" ; "Dir" |] in
+  let header : string array = [| "Trans"; "Term"; "Ctxt"; "Log" ; "Tape" ; "Dir" |] in
   let configs = Array.of_list (List.map sprint_config run) in
   Print.print_run out header configs
 
+
+let count_trans (run : config list) (tr : trans_name) = 
+  List.fold_left (fun n (Conf(_,_,_,_,_,tr')) -> if tr = tr' then n+1 else n) 0 run
+
 let print_iam_result out (run : config list) = 
   let n = (List.length run) in
-  Printf.fprintf out "%d\n" n
+  (* Printf.fprintf out "%d\n" n *)
+  Printf.fprintf out "length=%d bt1=%d\n" n (count_trans run Trans_bt1)
   (* fprint_config out (List.nth run (n-1)) *)
 
 
@@ -95,29 +112,29 @@ let rec level = function
 
 
 (* return the next config of the KAM *)
-let trans (Conf(t, ctxt, lo, tape, dir) : config) : config = 
+let trans (Conf(t, ctxt, lo, tape, dir, _) : config) : config = 
   (* print_config (Conf(t, ctxt, lo, tape, dir)); *)
   match t, ctxt, lo, tape, dir with 
-  | APP(u, t), ctxt, lo, tape, Down                     -> (* →•1  *) Conf(u, LAPP(t)::ctxt, lo, Bullet(tape), Down)
-  | ABS(x, t), ctxt, lo, Bullet(tape), Down             -> (* →•2  *) Conf(t, CABS(x)::ctxt, lo, tape, Down)
-  | ABS(_, _), ctxt, lo, Lpos((x, c, lo'), tape), Down  -> (* →bt2 *) Conf(VAR(x), c @ ctxt, concat_log lo' lo, tape, Up) (* TODO sanity check?*)
+  | APP(u, t), ctxt, lo, tape, Down                     -> (* →•1  *) Conf(u, LAPP(t)::ctxt, lo, Bullet(tape), Down, Trans_B1)
+  | ABS(x, t), ctxt, lo, Bullet(tape), Down             -> (* →•2  *) Conf(t, CABS(x)::ctxt, lo, tape, Down, Trans_B2)
+  | ABS(_, _), ctxt, lo, Lpos((x, c, lo'), tape), Down  -> (* →bt2 *) Conf(VAR(x), c @ ctxt, concat_log lo' lo, tape, Up, Trans_bt2) (* TODO sanity check?*)
 
-  | u, LAPP(t)::ctxt, lo, Bullet(tape), Up              -> (* →•3  *) Conf(APP(u, t), ctxt, lo, tape, Up)
-  | t, CABS(x)::ctxt, lo, tape, Up                      -> (* →•4  *) Conf(ABS(x, t), ctxt, lo, Bullet(tape), Up)
-  | u, LAPP(t)::ctxt, lo, Lpos(l, tape), Up             -> (* →arg *) Conf(t, RAPP(u)::ctxt, LCons(l, lo), tape, Down)
-  | t, RAPP(u)::ctxt, LCons(l, lo), tape, Up            -> (* →bt1 *) Conf(u, LAPP(t)::ctxt, lo, Lpos(l, tape), Down)
+  | u, LAPP(t)::ctxt, lo, Bullet(tape), Up              -> (* →•3  *) Conf(APP(u, t), ctxt, lo, tape, Up, Trans_B3)
+  | t, CABS(x)::ctxt, lo, tape, Up                      -> (* →•4  *) Conf(ABS(x, t), ctxt, lo, Bullet(tape), Up, Trans_B4)
+  | u, LAPP(t)::ctxt, lo, Lpos(l, tape), Up             -> (* →arg *) Conf(t, RAPP(u)::ctxt, LCons(l, lo), tape, Down, Trans_Arg)
+  | t, RAPP(u)::ctxt, LCons(l, lo), tape, Up            -> (* →bt1 *) Conf(u, LAPP(t)::ctxt, lo, Lpos(l, tape), Down, Trans_bt1)
 
   | VAR(x), ctxt, lo, tape, Down                        ->  (* →var *)
     let octxt = find_abs x ctxt in  
     if Option.is_none octxt then 
-      Conf(t, ctxt, lo, tape, dir) (*final state (open variable)*)
+      Conf(t, ctxt, lo, tape, dir, Trans_None) (*final state (open variable)*)
     else
       let (dctxt, ctxt) = Option.get octxt in
       let (lon, lo) = nhead_log (level dctxt) lo in
-                                                          Conf(fill_hole dctxt (VAR(x)), ctxt, lo, Lpos((x, dctxt, lon) ,tape), Up)
-  | _ -> Conf(t, ctxt, lo, tape, dir) (* final state*)
+                                                          Conf(fill_hole dctxt (VAR(x)), ctxt, lo, Lpos((x, dctxt, lon) ,tape), Up, Trans_Var)
+  | _ -> Conf(t, ctxt, lo, tape, dir, Trans_None) (* final state*)
 
-let is_final (Conf(t, ctxt, lo, tape, dir) : config) =
+let is_final (Conf(t, ctxt, lo, tape, dir,_) : config) =
   match t, ctxt, lo, tape, dir with 
   | ABS(_, _), _, _, TNil, Down -> true 
   | _, [], _, _, Up -> true 
@@ -130,5 +147,13 @@ let rec iam_loop (c : config) : config list =
   else
     c :: iam_loop (trans c)
 
-let iam (t : term) (n : int) : config list = iam_loop (Conf(t, [], LNil, tape_make n, Down))
+let rec iam_loop_noverbose (c : config) : config list = 
+  if is_final c then 
+    [c]
+  else
+    iam_loop_noverbose (trans c)
+
+let iam (t : term) (n : int) (_ : bool): config list = 
+  let conf = Conf(t, [], LNil, tape_make n, Down, Trans_None) in  
+  iam_loop conf
 
