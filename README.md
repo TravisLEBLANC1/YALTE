@@ -12,9 +12,18 @@ There is a dependency with the package [Wcwidth](https://opam.ocaml.org/packages
 
 
 `./bin/main.exe [-iam/-kam] [-v] prog.ml`
-- -iam activate the IAM
-- -kam activate the KAM
-- -v will print the entire run
+- `-iam` activate the IAM
+- `-kam` activate the KAM
+- `-v` will print the entire run
+- `-n n` the number of bullet inital of the iam
+- `-scott n` gives n as input to the final term, in scott's encoding 
+- `-church n` gives n as input to the final term, in church's encoding 
+
+typically the command I use to get the length of the computation is :
+`./bin/main.exe -scott 10 -iam prog.ml`
+
+and to check the run I use :
+`./bin/main.exe -v -scott 10 -iam prog.ml > output.txt` 
 
 ## Syntax
 

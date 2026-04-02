@@ -3,7 +3,7 @@ open Lexing
 open Format
 open Yaltelib
 
-let usage = "usage: ./main.exe [-iam/-kam] prog.ml"
+let usage = "usage: ./main.exe [-scott/-church] n [-v] [-iam/-kam] prog.ml"
 
 let verbose_flag = ref false
 let iam_flag = ref false 
