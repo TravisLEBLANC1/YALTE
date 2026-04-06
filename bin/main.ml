@@ -3,10 +3,11 @@ open Lexing
 open Format
 open Yaltelib
 
-let usage = "usage: ./main.exe [-scott/-church] n [-v] [-iam/-kam] prog.ml"
+let usage = "usage: ./main.exe [-scott/-church] n [-v] [-iam/-kam/-type] prog.ml"
 
 let verbose_flag = ref false
 let iam_flag = ref false 
+let type_flag = ref false 
 let kam_flag = ref false 
 let input_int = ref 0
 let bullets = ref 0
@@ -25,6 +26,7 @@ let spec = [
   ("-v", Arg.Set verbose_flag, "print the entire run");
   ("-iam", Arg.Set iam_flag, "enable iam run");
   ("-kam", Arg.Set kam_flag, "enable kam run");
+  ("-type", Arg.Set type_flag, "type the term with intersection types");
   ("-scott", Arg.Int input_scott, "gives the integer as input in Scott encodding");
   ("-church", Arg.Int input_church, "gives the integer as input in Church encodding");
   ("-n", Arg.Set_int bullets, "the number of initial Bullet for the IAM");
@@ -69,6 +71,18 @@ let compute_term term =
       Kam.print_kam_run stdout kam_run 
     else
       Kam.print_kam_result stdout kam_run
+  );
+  if !type_flag then (
+    let run = Intersection.weak_head_run term in 
+      if !verbose_flag then(
+      Intersection.print_weak_head_run stdout run )
+    else
+      Intersection.print_weak_head_res stdout run;
+    let tyterm = Intersection.type_run run in
+    if !verbose_flag then(
+      Intersection.print_typing_latex stdout tyterm )
+    else
+      Intersection.print_typing_res stdout tyterm
   )
 
 let () =

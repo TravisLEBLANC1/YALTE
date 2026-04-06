@@ -29,6 +29,8 @@ type context = ctxt_type list
 
 type input_type = Church | Scott | No_Input
 
+let var_equal = String.equal
+
 let rec find_abs x ctxt res = match ctxt with 
   | [] -> None
   | CABS(y)::ctxt when String.equal x y -> Some(res @ [CABS(y)], ctxt)

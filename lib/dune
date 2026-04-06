@@ -4,5 +4,6 @@
  term
  print
  kam
- iam)
+ iam
+ intersection)
  (libraries wcwidth))
