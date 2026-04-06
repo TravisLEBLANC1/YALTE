@@ -94,7 +94,7 @@ let print_run out (header : string array) (configs : (string array) array) : uni
   normalize_line header;
 
   (* print general info on the run *)
-  Printf.fprintf out "length = %d \n" (Array.length configs);
+  Printf.fprintf out "length = %d \n" (Array.length configs - 1);
 
   (* print each lines *)
   let total_size = Array.fold_left (fun res c -> res + c + 2) 4 max_col in

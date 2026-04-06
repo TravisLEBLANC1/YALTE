@@ -74,10 +74,18 @@ let print_iam_run out (run : config list) =
 let count_trans (run : config list) (tr : trans_name) = 
   List.fold_left (fun n (Conf(_,_,_,_,_,tr')) -> if tr = tr' then n+1 else n) 0 run
 
+let rec count_backtracking (run : config list) (n : int) (res : int) = match run with 
+  | [] -> res 
+  | Conf(_,_,_,_,_,Trans_bt1) :: run -> count_backtracking run 1 res 
+  | Conf(_,_,_,_,_,Trans_bt2) :: run -> count_backtracking run 0 (res + n) 
+  | _ :: run -> count_backtracking run (n+1) res
+
+let count_backtracking (run : config list) = count_backtracking run 0 0
+
 let print_iam_result out (run : config list) = 
   let n = (List.length run) in
   (* Printf.fprintf out "%d\n" n *)
-  Printf.fprintf out "length=%d bt1=%d\n" n (count_trans run Trans_bt1)
+  Printf.fprintf out "length iam run=%d backtrack=%d\n" (n-1) (count_backtracking run)
   (* fprint_config out (List.nth run (n-1)) *)
 
 
